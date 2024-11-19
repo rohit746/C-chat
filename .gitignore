@@ -1,0 +1,24 @@
+# Ignore compiled files and executables
+server
+client
+
+# Ignore object files
+*.o
+
+# Ignore dependency files
+*.d
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+
+# Ignore core dumps
+core
+core.*
+
+# Ignore editor-specific and OS-generated files
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
