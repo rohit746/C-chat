@@ -1,0 +1,42 @@
+name: C Build and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Install GCC
+      - name: Install GCC
+        run: sudo apt-get update && sudo apt-get install -y gcc make
+
+      # Build the project using Makefile
+      - name: Build project
+        run: make
+
+      # Run server in the background
+      - name: Run server
+        run: |
+          ./server &
+        shell: bash
+
+      # Test client connection
+      - name: Test client
+        run: |
+          echo "test_user" | ./client
+        shell: bash
+
+      # Clean up the build
+      - name: Clean up
+        run: make clean
