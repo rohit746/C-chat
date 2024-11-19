@@ -29,6 +29,7 @@ jobs:
       - name: Run server
         run: |
           ./server &
+          sleep 2 # Give the server time to initialize
         shell: bash
 
       # Test client connection
