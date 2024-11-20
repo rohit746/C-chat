@@ -76,30 +76,33 @@ void *receive_messages(void *socket_desc) {
   int read_size;
 
   while ((read_size = recv(sock, buffer, BUFFER_SIZE, 0)) > 0) {
-    // Null terminate the buffer
     buffer[read_size] = '\0';
-
-    // Move cursor to beginning of line
-    printf("\r");
-
-    // Clear entire line
-    printf("\033[K");
+    printf("\r");     // Move cursor to beginning of line
+    printf("\033[K"); // Clear entire line
 
     // Check if it's a system message (join/leave)
     if (strstr(buffer, ">>>") != NULL) {
-      // System messages in yellow
       printf(ANSI_COLOR_YELLOW "%s\n" ANSI_COLOR_RESET, buffer);
     } else {
-      // Regular messages in green
-      printf(ANSI_COLOR_GREEN "%s\n" ANSI_COLOR_RESET, buffer);
+      // Check if the message is from the current user
+      char sender_prefix[MAX_USERNAME_LEN + 2];
+      snprintf(sender_prefix, sizeof(sender_prefix), "%s: ", username);
+
+      if (strncmp(buffer, sender_prefix, strlen(sender_prefix)) == 0) {
+        // Replace username with "you" for own messages
+        printf(ANSI_COLOR_BLUE "you: %s\n" ANSI_COLOR_RESET,
+               buffer + strlen(sender_prefix));
+      } else {
+        // Other users' messages in green
+        printf(ANSI_COLOR_GREEN "%s\n" ANSI_COLOR_RESET, buffer);
+      }
     }
 
     // Reprint the current input prompt
-    printf("%s: ", username);
+    printf("you: ");
     fflush(stdout);
   }
 
-  // Connection lost
   printf(ANSI_COLOR_RED "\nConnection to server lost.\n" ANSI_COLOR_RESET);
   exit(1);
   return NULL;
@@ -115,13 +118,11 @@ void send_messages() {
 
   printf(ANSI_COLOR_BLUE
          "Chat started. Press Ctrl-D to exit.\n" ANSI_COLOR_RESET);
-  printf("%s: ", username);
+  printf("you: ");
   fflush(stdout);
 
   while (1) {
-    // Read character by character
     if (read(STDIN_FILENO, &ch, 1) <= 0) {
-      // EOF (Ctrl-D)
       printf(ANSI_COLOR_YELLOW "\nExiting chat...\n" ANSI_COLOR_RESET);
       close(sock);
       exit(0);
@@ -142,17 +143,15 @@ void send_messages() {
       if (msg_len > 0) {
         message[msg_len] = '\0';
 
-        // Prepare full message
+        // Send full message with actual username
         char full_message[BUFFER_SIZE];
         snprintf(full_message, sizeof(full_message), "%s: %s", username,
                  message);
-
-        // Send message
         send(sock, full_message, strlen(full_message), 0);
 
         // Reset message
         msg_len = 0;
-        printf("\n%s: ", username);
+        printf("\nyou: ");
         fflush(stdout);
       }
       continue;
